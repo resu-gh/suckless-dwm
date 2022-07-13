@@ -1,0 +1,15 @@
+bc
+libx11
+libxft
+freetype2
+xorg-xset
+fontconfig
+base-devel
+noto-fonts
+xorg-xinit
+libxinerama
+xorg-server
+ttf-fira-code
+xorg-xsetroot
+xorg-setxkbmap
+ttf-nerd-fonts-symbols-mono

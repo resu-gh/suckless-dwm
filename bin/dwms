@@ -1,0 +1,39 @@
+#!/bin/bash
+
+pethip() {
+	echo "A:$(ip route get 8.8.8.8 2>/dev/null | \
+        grep -Eo 'src [0-9.]+' | \
+        grep -Eo '[0-9.]+')"
+}
+
+prmem(){ echo "R:$(($(grep -m1 'MemAvailable:' /proc/meminfo | awk '{print $2}') / 1024))" ;}
+
+pnetw(){
+	netlog=/dev/shm/netlog
+	[ -f $netlog ] || echo "0 0" > $netlog
+    rxbprev=$(cut -d" " -f1 $netlog)
+    txbprev=$(cut -d" " -f2 $netlog)
+	rxbcurr=$(cat /sys/class/net/[ew]*/statistics/rx_bytes)
+	txbcurr=$(cat /sys/class/net/[ew]*/statistics/tx_bytes)
+	echo \
+        "D:$(bc <<< "scale=3; ($rxbcurr-$rxbprev) / 10^6")" \
+        "U:$(bc <<< "scale=3; ($txbcurr-$txbprev) / 10^6")"
+	echo "$rxbcurr $txbcurr" > "$netlog"
+}
+
+pdate(){ echo $(date "+%a %d-%m-%y %T") ;}
+
+pdisk(){
+	diskprompt=$(df -t ext4 -h|grep -w '/'|xargs|cut -d' ' -f2,3,4,5)
+	disksize=$(echo $diskprompt|cut -d' ' -f1)
+	diskused=$(echo $diskprompt|cut -d' ' -f2)
+	diskfree=$(echo $diskprompt|cut -d' ' -f3)
+	diskperc=$(echo $diskprompt|cut -d' ' -f4)
+	echo "S:$disksize U:$diskused F:$diskfree P:$diskperc"
+}
+
+while true
+do
+	xsetroot -name " $(pdisk) | $(prmem) | $(pnetw) | $(pdate) "
+	sleep 1
+done
